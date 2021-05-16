@@ -1,7 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\DjangoWebProjectVS2017"
+    "\\DjangoWebProjectVS2017",
+    "\\DjangoWebProjectVS2017\\DjangoWebProjectVS2017",
+    "\\DjangoWebProjectVS2017\\obj",
+    "\\DjangoWebProjectVS2017\\obj\\Debug"
   ],
   "SelectedNode": "\\DjangoWebProjectVS2017.sln",
   "PreviewInSolutionExplorer": false

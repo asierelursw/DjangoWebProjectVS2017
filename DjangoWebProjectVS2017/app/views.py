@@ -3,17 +3,20 @@ Definition of views.
 """
 
 from django.shortcuts import render,get_object_or_404
+
 from django.http import HttpRequest
 from django.template import RequestContext
 from datetime import datetime
 from django.http.response import HttpResponse, Http404
 from django.http import HttpResponseRedirect, HttpResponse
-from .models import Question,Choice,User
+from .models import Question,Choice,User 
 from django.template import loader
 from django.core.urlresolvers import reverse
-from app.forms import QuestionForm, ChoiceForm,UserForm
+from app.forms import QuestionForm, ChoiceForm,UserForm 
 from django.shortcuts import redirect
 import json
+from django.contrib import messages
+from django.db.models import Count
 
 
 def home(request):
@@ -40,6 +43,30 @@ def contact(request):
             'year':datetime.now().year,
         }
     )
+def VerPreguntas(request):
+    latest_question_list = Question.objects.order_by('-pub_date')
+    template = loader.get_template('app/VerPreguntas.html')    
+    questions = Question.objects.all()
+    temas = questions.values('tema').distinct()
+    context = {
+                'title':'Ver preguntas y respuestas',
+                'message':'Listado de las preguntas y sus respectivas respuestas',
+                'latest_question_list': latest_question_list,
+                'temas':temas,
+              }
+    return render(request, 'app/VerPreguntas.html', context)
+
+def VerPreguntasTema(request):
+    selected = request.POST['dropList']
+    listaObjectos = Question.objects.filter(tema=request.POST['dropList'])
+
+    context = {
+            'title':'Ver preguntas y respuestas por tema',
+            'message':'Listado de las preguntas y sus respectivas respuestas con el tema "' + selected + '"',
+            'listaObjectos': listaObjectos,
+            }
+    return render(request, 'app/VerPreguntasTema.html', context)
+
 
 def about(request):
     """Renders the about page."""
@@ -56,9 +83,12 @@ def about(request):
 def index(request):
     latest_question_list = Question.objects.order_by('-pub_date')
     template = loader.get_template('polls/index.html')
+    questions = Question.objects.all()
+    temas = questions.values('tema').distinct()
     context = {
                 'title':'Lista de preguntas de la encuesta',
                 'latest_question_list': latest_question_list,
+                'temas':temas,
               }
     return render(request, 'polls/index.html', context)
 
@@ -66,9 +96,10 @@ def detail(request, question_id):
      question = get_object_or_404(Question, pk=question_id)
      return render(request, 'polls/detail.html', {'title':'Respuestas asociadas a la pregunta:','question': question})
 
-def results(request, question_id):
+def results(request, question_id, selected_choice_id):
     question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'polls/results.html', {'title':'Resultados de la pregunta:','question': question})
+    choice = get_object_or_404(Choice, pk=selected_choice_id)
+    return render(request, 'polls/results.html', {'title':'Resultados de la pregunta:','question': question,'choice':choice})
 
 def vote(request, question_id):
     p = get_object_or_404(Question, pk=question_id)
@@ -86,7 +117,8 @@ def vote(request, question_id):
         # Siempre devolver un HttpResponseRedirect despues de procesar
         # exitosamente el POST de un form. Esto evita que los datos se
         # puedan postear dos veces si el usuario vuelve atras en su browser.
-        return HttpResponseRedirect(reverse('results', args=(p.id,)))
+        return HttpResponseRedirect(reverse('results', args=(p.id,selected_choice.id)))
+
 
 def question_new(request):
         if request.method == "POST":
@@ -103,18 +135,31 @@ def question_new(request):
 
 def choice_add(request, question_id):
         question = Question.objects.get(id = question_id)
-        if request.method =='POST':
+        cantidadChoice = Choice.objects.filter(question = question_id).count()
+        message = ''
+        hayTrue = 0
+        if request.method == "POST":
             form = ChoiceForm(request.POST)
             if form.is_valid():
-                choice = form.save(commit = False)
-                choice.question = question
-                choice.vote = 0
-                choice.save()         
-                #form.save()
-        else: 
+                if cantidadChoice < 4:
+                    choiceTrue = form.cleaned_data['correct']
+                    if choiceTrue is True:
+                        choices = Choice.objects.filter(question = question_id)
+                        hayTrue = choices.filter(correct = True).count()
+                    if hayTrue == 0:
+                        choice = form.save(commit = False)
+                        choice.question = question
+                        choice.vote = 0
+                        choice.save()
+                        message = 'Respuesta añadida con éxito.'
+                    else: 
+                        message = 'Ya hay una respuesta correcta.'
+                else:
+                    message = 'Máximo de respuestas alcanzadas.'
+        else:
             form = ChoiceForm()
-        #return render_to_response ('choice_new.html', {'form': form, 'poll_id': poll_id,}, context_instance = RequestContext(request),)
-        return render(request, 'polls/choice_new.html', {'title':'Pregunta:'+ question.question_text,'form': form})
+        return render(request, 'polls/choice_new.html', {'title':'Pregunta:'+ question.question_text,'message':message,'form': form})
+
 
 def chart(request, question_id):
     q=Question.objects.get(id = question_id)

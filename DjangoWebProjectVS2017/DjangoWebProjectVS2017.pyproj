@@ -4,7 +4,8 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <Name>DjangoWebProjectVS2017</Name>
     <RootNamespace>DjangoWebProjectVS2017</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|env1|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -70,6 +71,8 @@
     <Content Include="app\templates\polls\choice_new.html" />
     <Content Include="app\templates\polls\detail.html" />
     <Content Include="app\templates\polls\grafico.html" />
+    <Content Include="app\templates\app\VerPreguntasTema.html" />
+    <Content Include="app\templates\app\VerPreguntas.html" />
     <Content Include="app\templates\polls\users.html" />
     <Content Include="app\templates\polls\index.html" />
     <Content Include="app\templates\polls\user_new.html" />
@@ -106,6 +109,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Interpreter Include="env1\">
+      <Id>env1</Id>
+      <Version>3.7</Version>
+      <Description>env1 (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
     <Interpreter Include="env\">
       <Id>env</Id>
       <Version>3.6</Version>
